@@ -1,0 +1,33 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build outputs
+dist/
+build/
+.next/
+out/
+.turbo/
+
+# Environment and sensitive credentials
+.env
+.env.local
+.env.*.local
+.credentials
+
+# Keycloak binary distribution & runtime data
+infra/keycloak/keycloak-*/
+infra/keycloak/data/
+*.log
+
+# Prisma and databases
+packages/database/prisma/*.db
+packages/database/prisma/*.db-journal
+
+# IDE and OS files
+.vscode/
+.idea/
+Thumbs.db
+[Dd]esktop.ini
+$RECYCLE.BIN/
+.DS_Store

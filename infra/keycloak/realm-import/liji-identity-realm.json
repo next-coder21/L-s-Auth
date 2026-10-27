@@ -1,0 +1,158 @@
+{
+  "id": "liji-identity",
+  "realm": "liji-identity",
+  "displayName": "L's - Auth (Liji Groups)",
+  "displayNameHtml": "<div class=\"kc-logo-text\"><span>L's - Auth</span> <small>Liji Groups</small></div>",
+  "enabled": true,
+  "sslRequired": "external",
+  "registrationAllowed": true,
+  "registrationEmailAsUsername": false,
+  "rememberMe": true,
+  "verifyEmail": false,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "resetPasswordAllowed": true,
+  "editUsernameAllowed": false,
+  "bruteForceProtected": true,
+  "permanentLockout": false,
+  "maxFailureWaitSeconds": 900,
+  "minimumQuickLoginWaitSeconds": 60,
+  "waitIncrementSeconds": 60,
+  "quickLoginCheckMilliSeconds": 1000,
+  "maxDeltaTimeSeconds": 43200,
+  "failureFactor": 5,
+  "roles": {
+    "realm": [
+      {
+        "name": "realm-admin",
+        "description": "Administrator of L's - Auth platform"
+      },
+      {
+        "name": "org-admin",
+        "description": "Organization Administrator"
+      },
+      {
+        "name": "app-user",
+        "description": "Standard authenticated application user"
+      }
+    ]
+  },
+  "defaultRoles": [
+    "app-user"
+  ],
+  "users": [
+    {
+      "username": "admin",
+      "enabled": true,
+      "email": "admin@lijigroups.com",
+      "firstName": "Liji",
+      "lastName": "Administrator",
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Admin@123",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "realm-admin",
+        "org-admin",
+        "app-user"
+      ]
+    },
+    {
+      "username": "developer",
+      "enabled": true,
+      "email": "developer@lijigroups.com",
+      "firstName": "Platform",
+      "lastName": "Developer",
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Dev@123",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "app-user"
+      ]
+    }
+  ],
+  "clients": [
+    {
+      "clientId": "ls-auth-web",
+      "name": "L's - Auth Web Portal",
+      "description": "Single-page administration and management portal",
+      "enabled": true,
+      "clientAuthenticatorType": "client-secret",
+      "publicClient": true,
+      "protocol": "openid-connect",
+      "directAccessGrantsEnabled": true,
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "serviceAccountsEnabled": false,
+      "rootUrl": "http://localhost:3000",
+      "baseUrl": "http://localhost:3000",
+      "redirectUris": [
+        "http://localhost:3000/*"
+      ],
+      "webOrigins": [
+        "*"
+      ],
+      "attributes": {
+        "pkce.code.challenge.method": "S256",
+        "post.logout.redirect.uris": "http://localhost:3000/*##http://localhost:3000"
+      }
+    },
+    {
+      "clientId": "ls-demo-table",
+      "name": "Liji Table Application",
+      "description": "Enterprise Data Platform - Demo App A",
+      "enabled": true,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "demo-table-secret-894172905183",
+      "publicClient": false,
+      "protocol": "openid-connect",
+      "directAccessGrantsEnabled": true,
+      "standardFlowEnabled": true,
+      "rootUrl": "http://localhost:4001",
+      "baseUrl": "http://localhost:4001",
+      "redirectUris": [
+        "http://localhost:4001/*"
+      ],
+      "webOrigins": [
+        "+"
+      ],
+      "attributes": {
+        "pkce.code.challenge.method": "S256",
+        "post.logout.redirect.uris": "http://localhost:4001/*##http://localhost:4001"
+      }
+    },
+    {
+      "clientId": "ls-demo-cars",
+      "name": "Alpha Cars Fleet Application",
+      "description": "Fleet Management Platform - Demo App B",
+      "enabled": true,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "demo-cars-secret-582910482910",
+      "publicClient": false,
+      "protocol": "openid-connect",
+      "directAccessGrantsEnabled": true,
+      "standardFlowEnabled": true,
+      "rootUrl": "http://localhost:4002",
+      "baseUrl": "http://localhost:4002",
+      "redirectUris": [
+        "http://localhost:4002/*"
+      ],
+      "webOrigins": [
+        "+"
+      ],
+      "attributes": {
+        "pkce.code.challenge.method": "S256",
+        "post.logout.redirect.uris": "http://localhost:4002/*##http://localhost:4002"
+      }
+    }
+  ]
+}

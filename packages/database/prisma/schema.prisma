@@ -1,0 +1,279 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum OrganizationStatus {
+  ACTIVE
+  SUSPENDED
+  PENDING
+}
+
+enum TenancyMode {
+  SHARED
+  ISOLATED
+}
+
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+  DEACTIVATED
+}
+
+enum MembershipRole {
+  OWNER
+  ADMIN
+  MEMBER
+  VIEWER
+}
+
+enum MembershipStatus {
+  ACTIVE
+  INVITED
+  SUSPENDED
+}
+
+enum ApplicationProtocol {
+  OIDC
+  SAML
+}
+
+enum ApplicationStatus {
+  ACTIVE
+  INACTIVE
+  DEPRECATED
+}
+
+enum OidcClientType {
+  CONFIDENTIAL
+  PUBLIC
+}
+
+enum ProvisioningStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  FAILED
+  RETRYING
+}
+
+enum SubscriptionPlan {
+  FREE
+  PRO
+  ENTERPRISE
+}
+
+enum SubscriptionStatus {
+  TRIALING
+  ACTIVE
+  PAST_DUE
+  CANCELED
+}
+
+enum AuditOutcome {
+  SUCCESS
+  FAILURE
+  DENIED
+}
+
+model Organization {
+  id             String             @id @default(uuid())
+  name           String
+  slug           String             @unique
+  status         OrganizationStatus @default(ACTIVE)
+  tenancyMode    TenancyMode        @default(SHARED)
+  brandingConfig Json?
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+
+  memberships       Membership[]
+  applications      Application[]
+  identityRealm     IdentityRealm?
+  subscription      Subscription?
+  auditLogs         AuditLog[]
+  provisioningJobs  ProvisioningJob[]
+
+  @@index([slug])
+  @@index([status])
+  @@map("organizations")
+}
+
+model User {
+  id            String      @id @default(uuid())
+  displayName   String
+  email         String      @unique
+  accountStatus UserStatus  @default(ACTIVE)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  identities    Identity[]
+  memberships   Membership[]
+
+  @@index([email])
+  @@map("users")
+}
+
+model Identity {
+  id                  String   @id @default(uuid())
+  userId              String
+  issuer              String
+  subject             String
+  identityProviderRef String?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([issuer, subject])
+  @@index([userId])
+  @@map("identities")
+}
+
+model Membership {
+  id             String           @id @default(uuid())
+  organizationId String
+  userId         String
+  role           MembershipRole   @default(MEMBER)
+  status         MembershipStatus @default(ACTIVE)
+  invitedAt      DateTime?
+  acceptedAt     DateTime?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, userId])
+  @@index([organizationId])
+  @@index([userId])
+  @@map("memberships")
+}
+
+model Application {
+  id                String              @id @default(uuid())
+  organizationId    String
+  name              String
+  description       String?
+  protocolType      ApplicationProtocol @default(OIDC)
+  applicationStatus ApplicationStatus   @default(ACTIVE)
+  callbackConfig    Json?
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  organization        Organization         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  oidcClient          OidcClient?
+  samlServiceProvider SamlServiceProvider?
+
+  @@index([organizationId])
+  @@index([protocolType])
+  @@map("applications")
+}
+
+model OidcClient {
+  id                     String         @id @default(uuid())
+  applicationId          String         @unique
+  clientId               String         @unique
+  clientType             OidcClientType @default(CONFIDENTIAL)
+  permittedRedirectUris  String[]
+  postLogoutRedirectUris String[]
+  scopeConfiguration     String[]
+  createdAt              DateTime       @default(now())
+  updatedAt              DateTime       @updatedAt
+
+  application Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  @@index([clientId])
+  @@map("oidc_clients")
+}
+
+model SamlServiceProvider {
+  id                           String   @id @default(uuid())
+  applicationId                String   @unique
+  entityId                     String   @unique
+  assertionConsumerServiceUrl  String
+  certificateMetadata          Json?
+  nameIdFormat                 String   @default("urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress")
+  signAssertions               Boolean  @default(true)
+  encryptAssertions            Boolean  @default(false)
+  createdAt                    DateTime @default(now())
+  updatedAt                    DateTime @updatedAt
+
+  application Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  @@index([entityId])
+  @@map("saml_service_providers")
+}
+
+model IdentityRealm {
+  id                   String             @id @default(uuid())
+  organizationId       String             @unique
+  realmIdentifier      String             @unique
+  tenancyMode          TenancyMode        @default(SHARED)
+  provisioningStatus   ProvisioningStatus @default(PENDING)
+  configurationVersion Int                @default(1)
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([realmIdentifier])
+  @@map("identity_realms")
+}
+
+model Subscription {
+  id                 String             @id @default(uuid())
+  organizationId     String             @unique
+  plan               SubscriptionPlan   @default(FREE)
+  status             SubscriptionStatus @default(ACTIVE)
+  entitlementConfig  Json?
+  usageLimits        Json?
+  billingProviderRef String?
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@map("subscriptions")
+}
+
+model AuditLog {
+  id                     String       @id @default(uuid())
+  organizationId         String?
+  actorReference         String
+  actorEmail             String?
+  action                 String
+  resourceType           String
+  resourceId             String
+  outcome                AuditOutcome @default(SUCCESS)
+  safeContextualMetadata Json?
+  ipAddress              String?
+  timestamp              DateTime     @default(now())
+
+  organization Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId])
+  @@index([action])
+  @@index([timestamp])
+  @@map("audit_logs")
+}
+
+model ProvisioningJob {
+  id                String             @id @default(uuid())
+  organizationId    String
+  operation         String
+  status            ProvisioningStatus @default(PENDING)
+  retryCount        Int                @default(0)
+  safeErrorDetails  Json?
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([status])
+  @@map("provisioning_jobs")
+}

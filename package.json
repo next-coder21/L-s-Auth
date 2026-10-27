@@ -1,0 +1,28 @@
+{
+  "name": "ls-auth-monorepo",
+  "version": "0.1.0",
+  "private": true,
+  "description": "L's - Auth: Commercial Identity Provider & Enterprise SSO Platform by Liji Groups",
+  "author": "Liji Groups",
+  "license": "UNLICENSED",
+  "scripts": {
+    "build": "pnpm --recursive run build",
+    "dev": "pnpm --recursive --parallel run dev",
+    "dev:api": "pnpm --filter @ls-auth/api run dev",
+    "dev:web": "pnpm --filter @ls-auth/web run dev",
+    "dev:demo-a": "pnpm --filter @ls-auth/demo-app-a run dev",
+    "dev:demo-b": "pnpm --filter @ls-auth/demo-app-b run dev",
+    "lint": "pnpm --recursive run lint",
+    "test": "pnpm --recursive run test",
+    "test:integration": "pnpm --filter @ls-auth/api run test:e2e",
+    "db:generate": "pnpm --filter @ls-auth/database run generate",
+    "db:migrate": "pnpm --filter @ls-auth/database run migrate",
+    "db:seed": "pnpm --filter @ls-auth/database run seed"
+  },
+  "devDependencies": {
+    "prettier": "^3.4.2",
+    "rimraf": "^6.0.1",
+    "typescript": "^5.6.3"
+  },
+  "packageManager": "pnpm@11.18.0"
+}
