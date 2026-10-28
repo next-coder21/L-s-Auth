@@ -196,3 +196,4 @@ app.get('/logout', (req: any, res) => {
 app.listen(PORT, () => {
   console.log(`Demo App A (Liji Table) running at http://localhost:${PORT}`);
 });
+

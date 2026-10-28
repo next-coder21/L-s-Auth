@@ -196,3 +196,4 @@ app.get('/logout', (req: any, res) => {
 app.listen(PORT, () => {
   console.log(`Demo App B (Alpha Cars) running at http://localhost:${PORT}`);
 });
+

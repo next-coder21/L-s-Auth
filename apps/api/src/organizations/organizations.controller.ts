@@ -43,3 +43,4 @@ export class OrganizationsController {
     return this.orgsService.update(id, body, user.id, user.email);
   }
 }
+

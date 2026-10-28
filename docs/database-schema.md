@@ -87,3 +87,4 @@ erDiagram
 ## 3. Data Protection Rules
 - **No Plaintext Passwords or Secrets:** Product database holds client ID references and metadata. Client secrets, private keys, and user password hashes remain exclusively inside Keycloak.
 - **Unique Constraints:** `(issuer, subject)` in `identities`, `(organizationId, userId)` in `memberships`, and `slug` in `organizations`.
+

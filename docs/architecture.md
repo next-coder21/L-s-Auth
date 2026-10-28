@@ -66,3 +66,4 @@ flowchart TD
 ### Layer C — Identity Protocol Engine (Keycloak)
 - Centralized token issuance, signing, PKCE validation, session cookie lifecycle, and JWKS exposure.
 - Connected exclusively to `liji_keycloak` PostgreSQL database.
+

@@ -96,3 +96,4 @@ Write-Host "`n==================================================================
 Write-Host "  L's - Auth Environment Setup Completed Successfully!" -ForegroundColor Green
 Write-Host "==============================================================================" -ForegroundColor Green
 Write-Host "Run '.\infra\scripts\start-dev.ps1' to start the identity platform services." -ForegroundColor Cyan
+

@@ -51,3 +51,4 @@ Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd '$root'; pnpm 
 
 Write-Host "`nAll processes launched in separate terminal windows." -ForegroundColor Green
 Write-Host "Execute '.\infra\scripts\health-check.ps1' to verify once all services finish booting up." -ForegroundColor Cyan
+

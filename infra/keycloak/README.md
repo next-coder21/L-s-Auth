@@ -27,3 +27,4 @@ $env:JAVA_HOME = "C:\Program Files\Java\jdk-21"
 
 - **Admin Account**: `admin` / `Admin@123` (Roles: `realm-admin`, `org-admin`, `app-user`)
 - **Developer Account**: `developer` / `Dev@123` (Roles: `app-user`)
+

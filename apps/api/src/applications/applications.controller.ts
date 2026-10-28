@@ -53,3 +53,4 @@ export class ApplicationsController {
     return this.appsService.delete(orgId, appId, user.id, user.email);
   }
 }
+

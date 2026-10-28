@@ -22,3 +22,4 @@ L's - Auth supports two distinct tenancy models to serve both high-scale commerc
 - **Identities** link users to identity provider subjects `(issuer, subject)`. Accounts are never merged purely based on matching email addresses.
 - **Memberships** establish explicit authorization, tenant scoping, and roles (`OWNER`, `ADMIN`, `MEMBER`, `VIEWER`).
 - Cross-tenant data leakage is strictly prohibited by `TenantGuard`.
+

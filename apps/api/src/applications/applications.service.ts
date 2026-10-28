@@ -195,3 +195,4 @@ export class ApplicationsService {
     return { success: true };
   }
 }
+

@@ -26,3 +26,4 @@ import { ApplicationsModule } from './applications/applications.module';
   ],
 })
 export class AppModule {}
+

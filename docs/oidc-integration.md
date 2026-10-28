@@ -41,3 +41,4 @@ sequenceDiagram
 - Existing central identity sessions authenticate identity, but application-specific authorization rules and organization scopes are still evaluated independently by each application.
 - Public clients must use PKCE with confidential client secrets omitted.
 - Tokens must always be verified against Keycloak's JWKS endpoint.
+

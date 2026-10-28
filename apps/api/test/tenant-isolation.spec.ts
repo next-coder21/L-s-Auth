@@ -113,3 +113,4 @@ describe('Tenant Isolation & Authorization Security Tests', () => {
     expect(prismaMock.membership.findFirst).not.toHaveBeenCalled();
   });
 });
+

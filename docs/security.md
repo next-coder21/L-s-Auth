@@ -37,3 +37,4 @@ if (!user.isPlatformAdmin) {
 - **Server-Side Sessions:** Demo applications and management portals store sessions server-side with `httpOnly`, `sameSite: 'lax'`, and signed cookies.
 - **Client Secrets Protection:** Confidential client secrets are never exposed to browser JavaScript or checked into source code.
 - **Audit Logging:** Every administrative action is logged with timestamp, actor reference, resource ID, and outcome.
+

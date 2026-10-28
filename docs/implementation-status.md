@@ -78,3 +78,4 @@
 - **Milestone 3 & 4:** Expand Keycloak Admin client capabilities to automate self-service tenant realm generation and client secret rotation.
 - **Milestone 5 & 6:** Implement SAML 2.0 service provider metadata exchange and test signed assertions.
 - **Milestone 7 & 8:** Commercial billing webhooks, custom branding CSS upload, and high-availability production hardening.
+

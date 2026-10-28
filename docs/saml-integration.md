@@ -24,3 +24,4 @@ Defined in `packages/database/prisma/schema.prisma`:
 ## 3. Security Considerations
 - Defend against XML Signature Wrapping (XSW) attacks through strict Keycloak schema validation.
 - Enforce Assertion validity windows and timestamp freshness to prevent replay attacks.
+

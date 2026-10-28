@@ -55,3 +55,4 @@ export function extractRoles(payload: ValidatedClaims, clientId?: string): strin
   }
   return Array.from(new Set(roles));
 }
+

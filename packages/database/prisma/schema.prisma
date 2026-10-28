@@ -277,3 +277,4 @@ model ProvisioningJob {
   @@index([status])
   @@map("provisioning_jobs")
 }
+

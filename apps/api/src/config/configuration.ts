@@ -18,3 +18,4 @@ export default () => ({
     jwtSecret: process.env.JWT_SECRET || 'dev-jwt-secret-at-least-32-chars-long',
   },
 });
+

@@ -52,3 +52,4 @@ try {
 }
 
 Write-Host "`nHealth check finished.`n"
+
