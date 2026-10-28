@@ -19,30 +19,50 @@
 - **Database Segregation:**
   - `liji_identity`: PostgreSQL database storing tenant organizations, memberships, apps, audit records, and subscriptions via Prisma ORM.
   - `liji_keycloak`: Dedicated PostgreSQL database storing internal identity engine state.
-- **Windows Local Development (No Docker):** Native execution using local PostgreSQL, Java 21, and PowerShell automation.
+- **Dual Run Modes:** Runs with **Docker Compose** or **Natively (No Docker)** on Windows.
 
 ---
 
-## Quick Start (Windows)
+## Quick Start
 
-### 1. Automated Setup
-Ensure local PostgreSQL is running on port 5432, then run:
+### Mode A: Run in Docker (Recommended for any machine with Docker)
+
+Starts PostgreSQL, Keycloak 26, NestJS API, Next.js Web Admin, and both Demo SSO applications in containers.
 
 ```powershell
+# Start all containers in background
+.\infra\scripts\start-docker.ps1
+# Or directly: docker compose up -d
+
+# Verify health
+.\infra\scripts\health-check.ps1
+
+# Stop containers
+.\infra\scripts\stop-docker.ps1
+# Or directly: docker compose down
+```
+
+---
+
+### Mode B: Run Without Docker (Native Windows)
+
+Prerequisites: Local PostgreSQL (port 5432), Java 21, and Node.js.
+
+```powershell
+# 1. Automated Setup (one-time setup: creates databases, downloads Keycloak, runs migrations & seed)
 .\infra\scripts\setup.ps1
-```
 
-### 2. Start Services
-```powershell
+# 2. Start Services (opens processes in separate terminal windows)
 .\infra\scripts\start-dev.ps1
-```
 
-### 3. Verify Health
-```powershell
+# 3. Verify Health
 .\infra\scripts\health-check.ps1
 ```
 
-### 4. Service Endpoints
+---
+
+## Service Endpoints (Both Modes)
+
 | Component | URL | Description |
 |-----------|-----|-------------|
 | **Next.js Web Admin Portal** | `http://localhost:3000` | Organization & Application Management |
@@ -51,6 +71,10 @@ Ensure local PostgreSQL is running on port 5432, then run:
 | **Keycloak Identity Engine** | `http://localhost:8080` | OIDC & SAML Protocol Engine |
 | **Demo App A (Liji Table)** | `http://localhost:4001` | First OIDC SSO Application |
 | **Demo App B (Alpha Cars)** | `http://localhost:4002` | Second OIDC SSO Application |
+
+### Default Credentials
+- **Admin:** `admin` / `Admin@123`
+- **Developer:** `developer` / `Dev@123`
 
 ---
 
@@ -65,4 +89,3 @@ Ensure local PostgreSQL is running on port 5432, then run:
 - [Hybrid Multi-Tenant Model](docs/tenant-model.md)
 - [Production Deployment Guide](docs/production-deployment.md)
 - [Implementation Status Log](docs/implementation-status.md)
-

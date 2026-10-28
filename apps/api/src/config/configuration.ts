@@ -7,10 +7,11 @@ export default () => ({
     url: process.env.DATABASE_URL,
   },
   keycloak: {
-    url: process.env.KEYCLOAK_URL || 'http://localhost:8080',
+    url: process.env.KEYCLOAK_INTERNAL_URL || process.env.KEYCLOAK_URL || 'http://localhost:8080',
+    issuerUrl: process.env.KEYCLOAK_ISSUER_URL || process.env.KEYCLOAK_URL || 'http://localhost:8080',
     realm: process.env.KEYCLOAK_DEV_REALM || 'liji-identity',
     adminUsername: process.env.KEYCLOAK_ADMIN || 'admin',
-    adminPassword: process.env.KEYCLOAK_ADMIN_PASSWORD || 'admin',
+    adminPassword: process.env.KEYCLOAK_ADMIN_PASSWORD || 'Admin@123',
     adminClientId: process.env.KEYCLOAK_ADMIN_CLIENT_ID || 'admin-cli',
   },
   session: {
@@ -18,4 +19,3 @@ export default () => ({
     jwtSecret: process.env.JWT_SECRET || 'dev-jwt-secret-at-least-32-chars-long',
   },
 });
-

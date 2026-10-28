@@ -1,0 +1,151 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: ls-auth-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: Admin@123
+      POSTGRES_DB: postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./infra/postgres/init-databases.sql:/docker-entrypoint-initdb.d/init-databases.sql:ro
+    ports:
+      - "5433:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - ls-auth-net
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.1.3
+    container_name: ls-auth-keycloak
+    command: start-dev --import-realm
+    environment:
+      KC_DB: postgres
+      KC_DB_URL_HOST: postgres
+      KC_DB_URL_PORT: 5432
+      KC_DB_URL_DATABASE: liji_keycloak
+      KC_DB_USERNAME: postgres
+      KC_DB_PASSWORD: Admin@123
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: Admin@123
+      KC_HTTP_PORT: 8080
+      KC_HOSTNAME: "http://localhost:8080"
+      KC_HOSTNAME_STRICT: "false"
+      KC_HOSTNAME_BACKCHANNEL_DYNAMIC: "false"
+    volumes:
+      - ./infra/keycloak/realm-import/liji-identity-realm.json:/opt/keycloak/data/import/liji-identity-realm.json:ro
+      - ./infra/keycloak/themes:/opt/keycloak/themes:ro
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - ls-auth-net
+
+  api:
+    build:
+      context: .
+      target: api
+    container_name: ls-auth-api
+    restart: unless-stopped
+    environment:
+      PORT: 3001
+      API_URL: http://localhost:3001
+      API_PREFIX: api/v1
+      DATABASE_URL: postgresql://postgres:Admin@123@postgres:5432/liji_identity?schema=public
+      KEYCLOAK_URL: http://localhost:8080
+      KEYCLOAK_INTERNAL_URL: http://keycloak:8080
+      KEYCLOAK_ISSUER_URL: http://localhost:8080
+      KEYCLOAK_DEV_REALM: liji-identity
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: Admin@123
+      KEYCLOAK_ADMIN_CLIENT_ID: admin-cli
+      CORS_ORIGINS: http://localhost:3000,http://localhost:4001,http://localhost:4002
+      SESSION_SECRET: super-secret-key-change-in-production-at-least-32-chars
+      JWT_SECRET: jwt-signing-secret-for-internal-tokens
+    ports:
+      - "3001:3001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      keycloak:
+        condition: service_started
+    networks:
+      - ls-auth-net
+
+  web:
+    build:
+      context: .
+      target: web
+    container_name: ls-auth-web
+    restart: unless-stopped
+    environment:
+      PORT: 3000
+      NEXT_PUBLIC_APP_NAME: "L's - Auth"
+      NEXT_PUBLIC_PARENT_ORG: "Liji Groups"
+      NEXT_PUBLIC_TAGLINE: "One Identity. Every Application."
+      NEXT_PUBLIC_API_URL: http://localhost:3001/api/v1
+      INTERNAL_API_URL: http://api:3001/api/v1
+      NEXT_PUBLIC_KEYCLOAK_URL: http://localhost:8080
+      INTERNAL_KEYCLOAK_URL: http://keycloak:8080
+      NEXT_PUBLIC_KEYCLOAK_REALM: liji-identity
+      NEXT_PUBLIC_KEYCLOAK_CLIENT_ID: ls-auth-web
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api
+    networks:
+      - ls-auth-net
+
+  demo-app-a:
+    build:
+      context: .
+      target: demo-app-a
+    container_name: ls-auth-demo-a
+    restart: unless-stopped
+    environment:
+      DEMO_APP_A_PORT: 4001
+      KEYCLOAK_URL: http://localhost:8080
+      KEYCLOAK_INTERNAL_URL: http://keycloak:8080
+      KEYCLOAK_DEV_REALM: liji-identity
+      DEMO_CLIENT_A_ID: ls-demo-table
+      DEMO_CLIENT_A_SECRET: demo-table-secret-894172905183
+    ports:
+      - "4001:4001"
+    depends_on:
+      - keycloak
+    networks:
+      - ls-auth-net
+
+  demo-app-b:
+    build:
+      context: .
+      target: demo-app-b
+    container_name: ls-auth-demo-b
+    restart: unless-stopped
+    environment:
+      DEMO_APP_B_PORT: 4002
+      KEYCLOAK_URL: http://localhost:8080
+      KEYCLOAK_INTERNAL_URL: http://keycloak:8080
+      KEYCLOAK_DEV_REALM: liji-identity
+      DEMO_CLIENT_B_ID: ls-demo-cars
+      DEMO_CLIENT_B_SECRET: demo-cars-secret-582910482910
+    ports:
+      - "4002:4002"
+    depends_on:
+      - keycloak
+    networks:
+      - ls-auth-net
+
+volumes:
+  postgres_data:
+
+networks:
+  ls-auth-net:
+    driver: bridge

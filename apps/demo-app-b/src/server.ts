@@ -7,12 +7,13 @@ import { createRemoteJWKSet, jwtVerify } from 'jose';
 const app = express();
 const PORT = parseInt(process.env.DEMO_APP_B_PORT || '4002', 10);
 const KEYCLOAK_URL = (process.env.KEYCLOAK_URL || 'http://localhost:8080').replace(/\/+$/, '');
+const KEYCLOAK_INTERNAL_URL = (process.env.KEYCLOAK_INTERNAL_URL || KEYCLOAK_URL).replace(/\/+$/, '');
 const REALM = process.env.KEYCLOAK_DEV_REALM || 'liji-identity';
 const CLIENT_ID = process.env.DEMO_CLIENT_B_ID || 'ls-demo-cars';
 const CLIENT_SECRET = process.env.DEMO_CLIENT_B_SECRET || 'demo-cars-secret-582910482910';
 const REDIRECT_URI = `http://localhost:${PORT}/callback`;
 
-const jwks = createRemoteJWKSet(new URL(`${KEYCLOAK_URL}/realms/${REALM}/protocol/openid-connect/certs`));
+const jwks = createRemoteJWKSet(new URL(`${KEYCLOAK_INTERNAL_URL}/realms/${REALM}/protocol/openid-connect/certs`));
 
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
@@ -49,10 +50,10 @@ app.get('/', (req: any, res) => {
     .btn-primary { background: #0284c7; color: #ffffff; }
     .btn-primary:hover { background: #0369a1; }
     .btn-danger { background: #dc2626; color: #ffffff; }
-    .btn-secondary { background: #334155; color: #f8fafc; }
+    .btn-secondary { background: #334155; color: #f1f5f9; }
     pre { background: #020617; padding: 16px; border-radius: 8px; overflow-x: auto; font-size: 13px; color: #38bdf8; border: 1px solid #1e293b; }
     .header-logo { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; border-bottom: 1px solid #1e293b; padding-bottom: 16px; }
-    .sso-banner { background: #064e3b; border: 1px solid #059669; padding: 16px; border-radius: 8px; margin: 20px 0; }
+    .sso-banner { background: #075985; border: 1px solid #0284c7; padding: 16px; border-radius: 8px; margin: 20px 0; }
   </style>
 </head>
 <body>
@@ -60,8 +61,8 @@ app.get('/', (req: any, res) => {
     <div class="header-logo">
       <div style="background:#0284c7; color:white; width:40px; height:40px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:20px;">C</div>
       <div>
-        <h2 style="margin:0; font-size:22px;">Alpha Cars Fleet</h2>
-        <span style="font-size:12px; color:#94a3b8;">Fleet Operations &bull; Port ${PORT}</span>
+        <h2 style="margin:0; font-size:22px;">Alpha Cars Portal</h2>
+        <span style="font-size:12px; color:#94a3b8;">Commercial Fleet Management Application &bull; Port ${PORT}</span>
       </div>
       <div style="margin-left: auto;">
         ${user ? '<span class="badge badge-success">SSO Authenticated</span>' : '<span class="badge badge-neutral">Unauthenticated</span>'}
@@ -71,32 +72,31 @@ app.get('/', (req: any, res) => {
     ${user ? `
       <div>
         <h3 style="margin-top:0;">Welcome, ${user.name || user.preferred_username}!</h3>
-        <p style="color:#94a3b8; font-size:14px;">
-          You were authenticated via <strong>L's - Auth Single Sign-On</strong>.
-        </p>
+        <p style="color:#94a3b8; font-size:14px;">You have successfully signed in via <strong>L's - Auth Single Sign-On</strong>.</p>
         
-        <div class="sso-banner">
-          <h4 style="margin:0 0 8px 0; color:#6ee7b7;">Single Sign-On Verified:</h4>
-          <p style="margin:0; font-size:13px; color:#d1fae5;">
-            You accessed Alpha Cars seamlessly using your existing central identity session without re-entering credentials!
-          </p>
-        </div>
-
         <div style="margin: 20px 0;">
           <strong>Identity Claims:</strong>
           <pre>${JSON.stringify(user, null, 2)}</pre>
         </div>
 
+        <div class="sso-banner">
+          <h4 style="margin:0 0 8px 0; color:#e0f2fe;">Single Sign-On (SSO) Cross-App Test:</h4>
+          <p style="margin:0 0 12px 0; font-size:13px; color:#f0f9ff;">
+            Because you signed in with your shared session, clicking below returns to <strong>Demo App A (Liji Table)</strong> with your active authentication session preserved.
+          </p>
+          <a href="http://localhost:4001" target="_blank" class="btn btn-secondary">Open Demo App A (Liji Table) &rarr;</a>
+        </div>
+
         <div style="margin-top:24px; display:flex; gap:12px;">
           <a href="/logout" class="btn btn-danger">Log Out</a>
-          <a href="http://localhost:4001" target="_blank" class="btn btn-secondary">Switch to Liji Table</a>
+          <a href="http://localhost:3000" target="_blank" class="btn btn-secondary">Open L's - Auth Admin Portal</a>
         </div>
       </div>
     ` : `
       <div style="text-align: center; padding: 30px 0;">
-        <h3 style="margin-top:0;">Alpha Cars Portal</h3>
+        <h3 style="margin-top:0;">Fleet Management Login</h3>
         <p style="color:#94a3b8; font-size:14px; max-width:480px; margin: 0 auto 24px auto;">
-          Centralized Single Sign-On demonstration using L's - Auth identity platform.
+          This demo application is integrated with <strong>L's - Auth</strong> via OpenID Connect (OIDC) Authorization Code Flow with PKCE.
         </p>
         <a href="/login" class="btn btn-primary" style="padding: 12px 28px; font-size: 16px;">Sign In with L's - Auth</a>
       </div>
@@ -150,7 +150,7 @@ app.get('/callback', async (req: any, res) => {
     params.append('redirect_uri', REDIRECT_URI);
     params.append('code_verifier', codeVerifier);
 
-    const tokenRes = await fetch(`${KEYCLOAK_URL}/realms/${REALM}/protocol/openid-connect/token`, {
+    const tokenRes = await fetch(`${KEYCLOAK_INTERNAL_URL}/realms/${REALM}/protocol/openid-connect/token`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: params.toString(),
@@ -193,7 +193,6 @@ app.get('/logout', (req: any, res) => {
   });
 });
 
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`Demo App B (Alpha Cars) running at http://localhost:${PORT}`);
 });
-

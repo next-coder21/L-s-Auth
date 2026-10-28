@@ -1,8 +1,12 @@
 {
   "id": "liji-identity",
   "realm": "liji-identity",
-  "displayName": "L's - Auth (Liji Groups)",
-  "displayNameHtml": "<div class=\"kc-logo-text\"><span>L's - Auth</span> <small>Liji Groups</small></div>",
+  "displayName": "L's Auth",
+  "displayNameHtml": "<div class=\"kc-logo-text\"><span>L's Auth</span> <small>Liji Groups</small></div>",
+  "loginTheme": "ls-auth",
+  "accountTheme": "keycloak.v2",
+  "adminTheme": "keycloak.v2",
+  "emailTheme": "keycloak",
   "enabled": true,
   "sslRequired": "external",
   "registrationAllowed": true,
@@ -83,7 +87,7 @@
   "clients": [
     {
       "clientId": "ls-auth-web",
-      "name": "L's - Auth Web Portal",
+      "name": "L's Auth Web Portal",
       "description": "Single-page administration and management portal",
       "enabled": true,
       "clientAuthenticatorType": "client-secret",
@@ -108,7 +112,7 @@
     },
     {
       "clientId": "ls-demo-table",
-      "name": "Liji Table Application",
+      "name": "Liji Table",
       "description": "Enterprise Data Platform - Demo App A",
       "enabled": true,
       "clientAuthenticatorType": "client-secret",
@@ -132,7 +136,7 @@
     },
     {
       "clientId": "ls-demo-cars",
-      "name": "Alpha Cars Fleet Application",
+      "name": "Alpha Cars",
       "description": "Fleet Management Platform - Demo App B",
       "enabled": true,
       "clientAuthenticatorType": "client-secret",
@@ -156,4 +160,3 @@
     }
   ]
 }
-

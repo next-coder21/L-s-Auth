@@ -7,12 +7,13 @@ import { createRemoteJWKSet, jwtVerify } from 'jose';
 const app = express();
 const PORT = parseInt(process.env.DEMO_APP_A_PORT || '4001', 10);
 const KEYCLOAK_URL = (process.env.KEYCLOAK_URL || 'http://localhost:8080').replace(/\/+$/, '');
+const KEYCLOAK_INTERNAL_URL = (process.env.KEYCLOAK_INTERNAL_URL || KEYCLOAK_URL).replace(/\/+$/, '');
 const REALM = process.env.KEYCLOAK_DEV_REALM || 'liji-identity';
 const CLIENT_ID = process.env.DEMO_CLIENT_A_ID || 'ls-demo-table';
 const CLIENT_SECRET = process.env.DEMO_CLIENT_A_SECRET || 'demo-table-secret-894172905183';
 const REDIRECT_URI = `http://localhost:${PORT}/callback`;
 
-const jwks = createRemoteJWKSet(new URL(`${KEYCLOAK_URL}/realms/${REALM}/protocol/openid-connect/certs`));
+const jwks = createRemoteJWKSet(new URL(`${KEYCLOAK_INTERNAL_URL}/realms/${REALM}/protocol/openid-connect/certs`));
 
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
@@ -150,7 +151,7 @@ app.get('/callback', async (req: any, res) => {
     params.append('redirect_uri', REDIRECT_URI);
     params.append('code_verifier', codeVerifier);
 
-    const tokenRes = await fetch(`${KEYCLOAK_URL}/realms/${REALM}/protocol/openid-connect/token`, {
+    const tokenRes = await fetch(`${KEYCLOAK_INTERNAL_URL}/realms/${REALM}/protocol/openid-connect/token`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: params.toString(),
@@ -193,7 +194,6 @@ app.get('/logout', (req: any, res) => {
   });
 });
 
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`Demo App A (Liji Table) running at http://localhost:${PORT}`);
 });
-

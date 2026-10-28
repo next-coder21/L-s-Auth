@@ -1,0 +1,10 @@
+node_modules
+.git
+.github
+*.log
+.next
+dist
+build
+.turbo
+infra/keycloak/keycloak-*
+

@@ -1,5 +1,5 @@
 # ==============================================================================
-# L's - Auth Windows Local Development Setup Script
+# L's - Auth Windows Local Development Setup Script (No Docker)
 # Liji Groups - Commercial Identity Provider & Enterprise SSO Platform
 # ==============================================================================
 
@@ -20,38 +20,64 @@ try {
     $pnpmVersion = pnpm -v
     Write-Host "  [OK] pnpm: $pnpmVersion" -ForegroundColor Green
 } catch {
-    Write-Error "pnpm is not installed. Run 'npm install -g pnpm'."
+    Write-Host "  pnpm not found. Installing pnpm globally via npm..." -ForegroundColor Yellow
+    npm install -g pnpm@11.18.0
 }
 
 # 3. Check Java 21
-$javaHome = "C:\Program Files\Java\jdk-21"
-if (Test-Path "$javaHome\bin\java.exe") {
+$javaCmd = Get-Command java -ErrorAction SilentlyContinue
+if ($javaCmd) {
+    $javaBin = Split-Path $javaCmd.Source
+    $javaHome = Split-Path $javaBin
     $env:JAVA_HOME = $javaHome
-    $env:PATH = "$javaHome\bin;$env:PATH"
-    Write-Host "  [OK] Java 21 detected at $javaHome" -ForegroundColor Green
+    Write-Host "  [OK] Java detected at $javaHome" -ForegroundColor Green
 } else {
-    try {
-        $javaVer = java -version 2>&1 | Select-Object -First 1
-        Write-Host "  [WARN] Default java: $javaVer. Java 21 is strongly recommended." -ForegroundColor Yellow
-    } catch {
-        Write-Error "Java is required for Keycloak. Please install JDK 21."
+    $jdkDirs = Get-ChildItem "C:\Program Files\Java\jdk*", "C:\Program Files\Eclipse Adoptium\jdk*" -ErrorAction SilentlyContinue
+    if ($jdkDirs) {
+        $env:JAVA_HOME = $jdkDirs[0].FullName
+        $env:PATH = "$($jdkDirs[0].FullName)\bin;$env:PATH"
+        Write-Host "  [OK] Java detected at $($jdkDirs[0].FullName)" -ForegroundColor Green
+    } else {
+        Write-Error "Java 21 is required for Keycloak. Please install JDK 21 (Eclipse Temurin or Oracle)."
     }
 }
 
 # 4. Check PostgreSQL
-$psqlPath = "C:\Program Files\PostgreSQL\17\bin\psql.exe"
-if (-not (Test-Path $psqlPath)) {
-    $psqlPath = "C:\Program Files\PostgreSQL\18\bin\psql.exe"
+$psqlPath = $null
+$psqlCmd = Get-Command psql -ErrorAction SilentlyContinue
+if ($psqlCmd) {
+    $psqlPath = $psqlCmd.Source
+} else {
+    $candidates = Get-ChildItem "C:\Program Files\PostgreSQL\*\bin\psql.exe" -ErrorAction SilentlyContinue | Sort-Object FullName -Descending
+    if ($candidates) {
+        $psqlPath = $candidates[0].FullName
+    }
 }
-if (-not (Test-Path $psqlPath)) {
-    Write-Error "psql not found in standard PostgreSQL directories."
+
+if (-not $psqlPath -or -not (Test-Path $psqlPath)) {
+    Write-Error "PostgreSQL client (psql.exe) not found. Please install PostgreSQL 15, 16, or 17."
 }
 Write-Host "  [OK] PostgreSQL client found at $psqlPath" -ForegroundColor Green
 
 Write-Host "`n>>> [2/6] Ensuring PostgreSQL Databases Exist..." -ForegroundColor Cyan
-$env:PGPASSWORD = "Admin"
-& $psqlPath -U postgres -p 5432 -f "$PSScriptRoot\..\postgres\init-databases.sql"
-Write-Host "  [OK] Databases 'liji_identity' and 'liji_keycloak' verified." -ForegroundColor Green
+if (-not $env:PGPASSWORD) {
+    if (Test-Path "$PSScriptRoot\..\..\.env") {
+        $pgPassLine = Get-Content "$PSScriptRoot\..\..\.env" | Where-Object { $_ -match "^KEYCLOAK_DB_PASSWORD=" }
+        if ($pgPassLine) {
+            $env:PGPASSWORD = $pgPassLine.Split('=')[1].Trim('"').Trim("'")
+        }
+    }
+}
+if (-not $env:PGPASSWORD) {
+    $env:PGPASSWORD = "Admin"
+}
+
+try {
+    & $psqlPath -U postgres -p 5432 -f "$PSScriptRoot\..\postgres\init-databases.sql"
+    Write-Host "  [OK] Databases 'liji_identity' and 'liji_keycloak' verified." -ForegroundColor Green
+} catch {
+    Write-Warning "Could not connect to PostgreSQL with default password. If using a custom password, set `$env:PGPASSWORD='your_password' before running setup.ps1."
+}
 
 Write-Host "`n>>> [3/6] Setting Up Keycloak Engine..." -ForegroundColor Cyan
 $keycloakDir = "$PSScriptRoot\..\keycloak"
@@ -81,7 +107,13 @@ if (-not (Test-Path $kcImportDir)) {
 Copy-Item "$PSScriptRoot\..\keycloak\realm-import\liji-identity-realm.json" "$kcImportDir\liji-identity-realm.json" -Force
 Write-Host "  [OK] Realm import file copied to Keycloak data/import." -ForegroundColor Green
 
-Write-Host "`n>>> [4/6] Installing pnpm Monorepo Dependencies..." -ForegroundColor Cyan
+# Ensure custom theme directory is deployed to Keycloak
+if (Test-Path "$PSScriptRoot\..\keycloak\themes\ls-auth") {
+    Copy-Item "$PSScriptRoot\..\keycloak\themes\ls-auth" "$kcTargetDir\themes\ls-auth" -Recurse -Force
+    Write-Host "  [OK] L's Auth theme deployed to Keycloak themes directory." -ForegroundColor Green
+}
+
+Write-Host "`n>>> [4/6] Installing Monorepo Dependencies..." -ForegroundColor Cyan
 Set-Location "$PSScriptRoot\..\.."
 pnpm install
 
@@ -89,11 +121,10 @@ Write-Host "`n>>> [5/6] Generating Prisma Client..." -ForegroundColor Cyan
 pnpm db:generate
 
 Write-Host "`n>>> [6/6] Applying Prisma Migrations & Seed Data..." -ForegroundColor Cyan
-pnpm db:migrate --name init
-pnpm db:seed
+pnpm --filter @ls-auth/database run deploy
+pnpm --filter @ls-auth/database run seed
 
 Write-Host "`n==============================================================================" -ForegroundColor Green
-Write-Host "  L's - Auth Environment Setup Completed Successfully!" -ForegroundColor Green
+Write-Host "  L's - Auth Non-Docker Environment Setup Completed Successfully!" -ForegroundColor Green
 Write-Host "==============================================================================" -ForegroundColor Green
-Write-Host "Run '.\infra\scripts\start-dev.ps1' to start the identity platform services." -ForegroundColor Cyan
-
+Write-Host "Run '.\infra\scripts\start-dev.ps1' to start the local services natively." -ForegroundColor Cyan

@@ -25,12 +25,14 @@ export class AuthGuard implements CanActivate {
 
     const token = authHeader.substring(7);
     const keycloakUrl = this.configService.get<string>('keycloak.url')!;
+    const issuerUrl = this.configService.get<string>('keycloak.issuerUrl') || keycloakUrl;
     const realm = this.configService.get<string>('keycloak.realm')!;
 
     try {
       const claims = await verifyToken(token, {
         keycloakUrl,
         realm,
+        expectedIssuer: `${issuerUrl.replace(/\/+$/, '')}/realms/${realm}`,
       });
 
       const roles = extractRoles(claims);
@@ -53,7 +55,7 @@ export class AuthGuard implements CanActivate {
             email: claims.email,
             identities: {
               create: {
-                issuer: claims.iss || `${keycloakUrl}/realms/${realm}`,
+                issuer: claims.iss || `${issuerUrl}/realms/${realm}`,
                 subject: claims.sub,
               },
             },
@@ -77,4 +79,3 @@ export class AuthGuard implements CanActivate {
     }
   }
 }
-
